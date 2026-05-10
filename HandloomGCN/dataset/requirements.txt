@@ -1,0 +1,9 @@
+tensorflow-cpu==2.15.0
+streamlit
+numpy
+pandas
+opencv-python-headless
+pillow
+matplotlib
+scikit-learn
+seaborn
