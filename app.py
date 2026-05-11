@@ -5,9 +5,20 @@ from pathlib import Path
 from PIL import Image
 
 MODEL_PATH = Path(__file__).resolve().parent / "handloom_model.h5"
-model = tf.keras.models.load_model(str(MODEL_PATH))
 
 CLASS_NAMES = ["muga", "nuni", "pat"]
+
+
+def load_model() -> tf.keras.Model:
+    if not MODEL_PATH.exists():
+        st.error(f"Model file not found: {MODEL_PATH}")
+        st.stop()
+    return tf.keras.models.load_model(str(MODEL_PATH))
+
+
+@st.cache_resource
+def get_model():
+    return load_model()
 
 
 def preprocess_image(image):
@@ -18,6 +29,7 @@ def preprocess_image(image):
 
 
 def predict_image(image):
+    model = get_model()
     processed = preprocess_image(image)
     prediction = model.predict(processed)
     predicted_index = np.argmax(prediction)
