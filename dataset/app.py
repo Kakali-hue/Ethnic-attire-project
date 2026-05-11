@@ -1,5 +1,5 @@
 import streamlit as st
-import tensorflow as tf
+import keras
 import numpy as np
 from pathlib import Path
 from PIL import Image
@@ -8,11 +8,11 @@ BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR.parent / "handloom_model.h5"
 
 
-def load_model() -> tf.keras.Model:
+def load_model():
     if not MODEL_PATH.exists():
         st.error(f"Model file not found: {MODEL_PATH}")
         st.stop()
-    return tf.keras.models.load_model(str(MODEL_PATH))
+    return keras.models.load_model(str(MODEL_PATH))
 
 
 @st.cache_resource
