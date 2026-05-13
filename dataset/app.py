@@ -1,3 +1,4 @@
+import csv
 import streamlit as st
 import keras
 import numpy as np
@@ -6,6 +7,13 @@ from PIL import Image
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR.parent / "handloom_model.h5"
+GI_TAGS_PATH = BASE_DIR.parent / "gi_tags.csv"
+CLASS_NAMES = ["muga", "nuni", "pat"]
+CLASS_TO_TAG_NAME = {
+    "muga": "Muga Silk",
+    "nuni": "Nuni Silk",
+    "pat": "Pat Silk",
+}
 
 
 def load_model():
@@ -15,12 +23,25 @@ def load_model():
     return keras.models.load_model(str(MODEL_PATH))
 
 
+def load_gi_tags():
+    if not GI_TAGS_PATH.exists():
+        return {}
+    with GI_TAGS_PATH.open("r", encoding="utf-8", newline="") as file:
+        reader = csv.DictReader(file)
+        return {row["attire_name"].strip().lower(): row for row in reader}
+
+
+def get_gi_tag_info(predicted_class):
+    gi_tags = load_gi_tags()
+    tag_name = CLASS_TO_TAG_NAME.get(predicted_class)
+    if not tag_name:
+        return None
+    return gi_tags.get(tag_name.lower())
+
+
 @st.cache_resource
 def get_model():
     return load_model()
-
-# Classes
-CLASS_NAMES = ["muga", "nuni", "pat"]
 
 
 # Preprocess function
@@ -75,3 +96,14 @@ if uploaded_file is not None:
     st.write(f"Detected Fabric: {result}")
 
     st.write(f"Confidence: {confidence*100:.2f}%")
+
+    gi_info = get_gi_tag_info(result)
+    if gi_info:
+        st.subheader("GI Tag Details")
+        st.write(f"**Tag Name:** {gi_info['attire_name']}")
+        st.write(f"**GI Tag:** {gi_info['gi_tag']}")
+        st.write(f"**State:** {gi_info['state']}")
+        st.write(f"**Type:** {gi_info['type']}")
+        st.write(f"**Description:** {gi_info['description']}")
+    else:
+        st.warning("GI tag information is not available for this prediction.")
